@@ -7,6 +7,8 @@ import com.ken.wms.exception.SystemLogServiceException;
 import com.ken.wms.exception.UserAccountServiceException;
 import com.ken.wms.security.service.Interface.AccountService;
 import com.ken.wms.security.util.CheckCodeGenerator;
+import com.ken.wms.util.MD5;
+
 import org.apache.log4j.Logger;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -24,12 +26,13 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Map;
 
 /**
- * 用户账户请求 Handler
+ * 鐢ㄦ埛璐︽埛璇锋眰 Handler
  *
  * @author Ken
  * @since 017/2/26.
@@ -54,36 +57,37 @@ public class AccountHandler {
     private static final String USER_PASSWORD = "password";
 
     /**
-     * 登陆账户
+     * 鐧婚檰璐︽埛
      *
-     * @param user 账户信息
-     * @return 返回一个 Map 对象，其中包含登陆操作的结果
+     * @param user 璐︽埛淇℃伅
+     * @return 杩斿洖涓�涓� Map 瀵硅薄锛屽叾涓寘鍚櫥闄嗘搷浣滅殑缁撴灉
      */
     @SuppressWarnings("unchecked")
     @RequestMapping(value = "login", method = RequestMethod.POST)
     public
     @ResponseBody
     Map<String, Object> login(@RequestBody Map<String, Object> user) {
-        // 初始化 Response
+        // 鍒濆鍖� Response
         Response response = responseUtil.newResponseInstance();
         String result = Response.RESPONSE_RESULT_ERROR;
         String errorMsg = "";
 
-        // 获取当前的用户的 Subject，shiro
+        // 鑾峰彇褰撳墠鐨勭敤鎴风殑 Subject锛宻hiro
         Subject currentUser = SecurityUtils.getSubject();
 
-        // 判断用户是否已经登陆
+        // 鍒ゆ柇鐢ㄦ埛鏄惁宸茬粡鐧婚檰
         if (currentUser != null && !currentUser.isAuthenticated()) {
             String id = (String) user.get(USER_ID);
-            String password = (String) user.get(USER_PASSWORD);
+            MD5 md = new MD5();
+            String password = md.digest((String) user.get(USER_PASSWORD));
             UsernamePasswordToken token = new UsernamePasswordToken(id, password);
 
-            // 执行登陆操作
+            // 鎵ц鐧婚檰鎿嶄綔
             try {
-                //会调用realms/UserAuthorizingRealm中的doGetAuthenticationInfo方法
+                //浼氳皟鐢╮ealms/UserAuthorizingRealm涓殑doGetAuthenticationInfo鏂规硶
                 currentUser.login(token);
 
-                // 设置登陆状态并记录
+                // 璁剧疆鐧婚檰鐘舵�佸苟璁板綍
                 Session session = currentUser.getSession();
                 session.setAttribute("isAuthenticate", "true");
                 Integer userID_integer = (Integer) session.getAttribute("userID");
@@ -105,27 +109,27 @@ public class AccountHandler {
             errorMsg = "already login";
         }
 
-        // 设置 Response
+        // 璁剧疆 Response
         response.setResponseResult(result);
         response.setResponseMsg(errorMsg);
         return response.generateResponse();
     }
 
     /**
-     * 注销账户
+     * 娉ㄩ攢璐︽埛
      *
-     * @return 返回一个 Map 对象，键值为 result 的内容代表注销操作的结果，值为 success 或 error
+     * @return 杩斿洖涓�涓� Map 瀵硅薄锛岄敭鍊间负 result 鐨勫唴瀹逛唬琛ㄦ敞閿�鎿嶄綔鐨勭粨鏋滐紝鍊间负 success 鎴� error
      */
     @RequestMapping(value = "logout", method = RequestMethod.GET)
     public
     @ResponseBody
     Map<String, Object> logout() {
-        // 初始化 Response
+        // 鍒濆鍖� Response
         Response response = responseUtil.newResponseInstance();
 
         Subject currentSubject = SecurityUtils.getSubject();
         if (currentSubject != null && currentSubject.isAuthenticated()) {
-            // 执行账户注销操作
+            // 鎵ц璐︽埛娉ㄩ攢鎿嶄綔
             currentSubject.logout();
             response.setResponseResult(Response.RESPONSE_RESULT_SUCCESS);
         } else {
@@ -137,47 +141,47 @@ public class AccountHandler {
     }
 
     /**
-     * 修改账户密码
+     * 淇敼璐︽埛瀵嗙爜
      *
-     * @param passwordInfo 密码信息
-     * @param request      请求
-     * @return 返回一个 Map 对象，其中键值为 result 代表修改密码操作的结果，
-     * 值为 success 或 error；键值为 msg 代表需要返回给用户的信息
+     * @param passwordInfo 瀵嗙爜淇℃伅
+     * @param request      璇锋眰
+     * @return 杩斿洖涓�涓� Map 瀵硅薄锛屽叾涓敭鍊间负 result 浠ｈ〃淇敼瀵嗙爜鎿嶄綔鐨勭粨鏋滐紝
+     * 鍊间负 success 鎴� error锛涢敭鍊间负 msg 浠ｈ〃闇�瑕佽繑鍥炵粰鐢ㄦ埛鐨勪俊鎭�
      */
     @RequestMapping(value = "passwordModify", method = RequestMethod.POST)
     public
     @ResponseBody
     Map<String, Object> passwordModify(@RequestBody Map<String, Object> passwordInfo,
                                        HttpServletRequest request) {
-        //初始化 Response
+        //鍒濆鍖� Response
         Response responseContent = responseUtil.newResponseInstance();
 
         String errorMsg = null;
         String result = Response.RESPONSE_RESULT_ERROR;
 
-        // 获取用户 ID
+        // 鑾峰彇鐢ㄦ埛 ID
         HttpSession session = request.getSession();
         Integer userID = (Integer) session.getAttribute("userID");
 
         try {
-            // 更改密码
+            // 鏇存敼瀵嗙爜
             accountService.passwordModify(userID, passwordInfo);
 
             result = Response.RESPONSE_RESULT_SUCCESS;
         } catch (UserAccountServiceException e) {
             errorMsg = e.getExceptionDesc();
         }
-        // 设置 Response
+        // 璁剧疆 Response
         responseContent.setResponseResult(result);
         responseContent.setResponseMsg(errorMsg);
         return responseContent.generateResponse();
     }
 
     /**
-     * 获取图形验证码 将返回一个包含4位字符（字母或数字）的图形验证码，并且将图形验证码的值设置到用户的 session 中
+     * 鑾峰彇鍥惧舰楠岃瘉鐮� 灏嗚繑鍥炰竴涓寘鍚�4浣嶅瓧绗︼紙瀛楁瘝鎴栨暟瀛楋級鐨勫浘褰㈤獙璇佺爜锛屽苟涓斿皢鍥惧舰楠岃瘉鐮佺殑鍊艰缃埌鐢ㄦ埛鐨� session 涓�
      *
-     * @param time     时间戳
-     * @param response 返回的 HttpServletResponse 响应
+     * @param time     鏃堕棿鎴�
+     * @param response 杩斿洖鐨� HttpServletResponse 鍝嶅簲
      */
     @RequestMapping(value = "checkCode/{time}", method = RequestMethod.GET)
     public void getCheckCode(@PathVariable("time") String time, HttpServletResponse response, HttpServletRequest request) {
@@ -185,7 +189,7 @@ public class AccountHandler {
         BufferedImage checkCodeImage = null;
         String checkCodeString = null;
 
-        // 获取图形验证码，依赖于util/CheckCodeGenerator
+        // 鑾峰彇鍥惧舰楠岃瘉鐮侊紝渚濊禆浜巙til/CheckCodeGenerator
         Map<String, Object> checkCode = checkCodeGenerator.generlateCheckCode();
 
         if (checkCode != null) {
@@ -194,13 +198,13 @@ public class AccountHandler {
         }
 
         if (checkCodeString != null && checkCodeImage != null) {
-            //获取response.getOutputStream()
+            //鑾峰彇response.getOutputStream()
             try (ServletOutputStream outputStream = response.getOutputStream()) {
-                // 设置 Session
+                // 璁剧疆 Session
                 HttpSession session = request.getSession();
                 session.setAttribute("checkCode", checkCodeString);
 
-                // 将验证码输出
+                // 灏嗛獙璇佺爜杈撳嚭
                 ImageIO.write(checkCodeImage, "png", outputStream);
 
                 response.setHeader("Pragma", "no-cache");
