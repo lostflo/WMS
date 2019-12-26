@@ -26,6 +26,19 @@ Spring+SpringMVC+MyBatis
 
 
 
+## 开始
+
+  打开tomcat服务器，输入localhost:8080/WMS/login进入登录界面。然后开始注册账号或者直接登录。
+
+
+## Maven
+
+  大量消除构建的重复，标准化构建过程。
+  可在线更新。
+  跨平台。
+
+
+
 ## 后台管理
 
   客户管理
@@ -53,3 +66,4 @@ Spring+SpringMVC+MyBatis
   工具包版本：jdk1.7 
   数据库：Mysql 
   maven版本：maven3.1.0 
+  服务器：tomcat
