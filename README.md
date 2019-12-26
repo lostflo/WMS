@@ -1,5 +1,6 @@
 # WMS
 基于SSM框架的仓库管理系统
+Spring+SpringMVC+MyBatis
 
 
 
@@ -25,6 +26,19 @@
 
 
 
+## 后台管理
+
+  账号管理
+  商品管理
+
+
+
 ## MD5加密
 
   对于用户账号的密码进行了MD5加密。
+  
+
+
+## 环境设定
+
+  eclipse jdk1.7 Mysql maven3.1.0 
