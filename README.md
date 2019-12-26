@@ -22,3 +22,9 @@
 ![](https://raw.githubusercontent.com/KEN-LJQ/MarkdownPics/master/Resource/2017-3-9/WMS-%E6%88%AA%E5%9B%BE8.PNG)
 
 ![](https://raw.githubusercontent.com/KEN-LJQ/MarkdownPics/master/Resource/2017-3-9/WMS-%E6%88%AA%E5%9B%BE9.PNG)
+
+
+
+## MD5加密
+
+  对于用户账号的密码进行了MD5加密。
